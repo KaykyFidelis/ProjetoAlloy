@@ -13,18 +13,32 @@ publicação de conteúdo de texto. As seguintes restrições devem ser seguidas
 estar associadas a usuários ativos, etc.).
 */
 
-sig Usuario{
-    ativo: lone Status,
-    inativo: lone Status,
-    perfis: set Perfil
+enum Status{
+    inativo,ativo
 }
 
-sig Perfil{}
+sig Usuario{
+    status: Status,
+    possui: some Perfil,    // some = 1 ou mais perfis, Usuario nunca terá 0 perfis
+    amigos: set Usuario,
+    exAmigos: set Usuario
+}
 
-one sig Status{}
+sig Perfil{
+    status: Status
+}
 
 fact "Restrições do Usuário"{
+    // Usuario nao pode ser amigo ou ex amigo dele mesmo
+    all u:Usuario | u not in u.amigos and u not in u.exAmigos
+
+    // Usuario nao pode ser amigo e ex amigo ao mesmo tempo de outro Usuario
+   // all u,x:Usuario | u != x and (u in x.amigos implies u not in x.exAmigos) and (u in x.exAmigos implies u not in x.amigos)
+   // all u,x:Usuario | u.amigos, x:
+}
+
+fact "Restrições do Perfil"{
     
 }
 
-run{}
+run {} 
