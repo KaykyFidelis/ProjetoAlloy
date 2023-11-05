@@ -25,6 +25,8 @@ sig Perfil{
 fact "Restrições do Usuário" {
     // Nenhum usuário é amigo ou ex-amigo de si próprio
     all u:Usuario | u not in u.amigos and u not in u.exAmigos
+    // Se um usuário é inativo, então não pode possuir relação com outros usuários
+    all u:Usuario | u.statusUsuario = inativo implies (#u.amigos = 0 and #u.exAmigos = 0) 
 }
 
 fact "Restrição de Publicação" {
