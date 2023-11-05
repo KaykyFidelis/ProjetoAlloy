@@ -18,7 +18,7 @@ enum Status{
 }
 
 enum Publicou{
-    simPublicou, naoPublicou
+    TemPublicação, NãoTemPublicação
 }
 
 sig Usuario{
@@ -31,7 +31,7 @@ sig Usuario{
 
 sig Perfil{
     statusPerfil: one Status,
-    possuiPublicacao: one Publicou
+    publicacoes: one Publicou
 }
 
 fact "Restrições do Usuário" {
