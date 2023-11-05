@@ -9,6 +9,9 @@ enum Publicou{
     TemPublicação, NaoTemPublicação
 }
 
+// O Usuario da rede possui seu Status (ativo/inativo), um conjunto de perfis aos quais
+// ele é dono, um conjunto dos Perfis que ele pode publicar, que incluem seus perfis
+// e o de seus amigos, e um conjunto dos seus amigos e dos seus ex-amigos
 sig Usuario{
     statusUsuario: one Status,
     possui: some Perfil,
@@ -17,6 +20,8 @@ sig Usuario{
     exAmigos: set Usuario
 }
 
+// Os Perfis da rede possuem seu Status (ativo/inativo) e um conjunto que indica se há ou não
+// publicações 
 sig Perfil{
     statusPerfil: one Status,
     publicacoes: one Publicou
@@ -30,6 +35,8 @@ fact "Restrições do Usuário" {
 }
 
 fact "Restrição de Publicação" {
+    // O Usuario pode publicar em todos seus perfis ativos
+    all u:Usuario, p:u.possui | p.statusPerfil = ativo implies p in u.podePublicar 
     // Um usuário pode publicar nos perfis de seus amigos, mas não pode publicar no de seus ex-amigos.
     all u:Usuario | (u.podePublicar = u.podePublicar + (u.amigos.possui) - (u.exAmigos.possui))
     // Se um perfil não é do usuário, nem dos amigos dele, então o usuário não pode publicar nesse perfil.
@@ -65,40 +72,55 @@ assert ativoPublicaInativo {
 }
 check ativoPublicaInativo
 
+// se o Usuario ta inativo seus perfis também estão 
 assert UsuarioInativoAndPerfilInativo {
     all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (inativo in p.statusPerfil)
 }
 check UsuarioInativoAndPerfilInativo
 
+// Usuario tem que possuir pelo menos um perfil
 assert atLeastOnePerfil {
     all u:Usuario | #(u.possui) > 0
 }
 check atLeastOnePerfil
 
+// Os perfis pertencem a apenas um Usuario
 assert belongsToOnlyOneUser {
     all u1,u2:Usuario | (u1 != u2) implies (all p:u1.possui | (not p in u2.possui))
 }
 check belongsToOnlyOneUser
 
+// Os Usuarios sao amigos e ex amigos mutuamente
 assert mutuals {
     all u1, u2: Usuario | (u1 in u2.amigos implies u2 in u1.amigos) and (u2 in u1.amigos implies u1 in u2.amigos)
     all u1, u2: Usuario | (u1 in u2.exAmigos implies u2 in u1.exAmigos) and (u2 in u1.exAmigos implies u1 in u2.exAmigos)
 }
 check mutuals
 
+// Usuario nao pode ser amigo ou ex amigo de si próprio
 assert ownFriend {
     all u:Usuario | not (u in u.amigos || u in u.exAmigos)
 }
 check ownFriend
 
+// se o Usuario ta inativo ele nao tem publicações
 assert postPerfilInativo {
     all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (NaoTemPublicação in p.publicacoes)
 }
 check postPerfilInativo
 
+// Usuario inativo nao tem amigos
 assert UsuarioInativoNoFriends {
     all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0 and #(u.exAmigos) = 0)
 }
 check UsuarioInativoNoFriends
+
+// Usuario ativo pode publicar em todos seus perfis ativos
+assert UsuarioPodePublicarPerfisAtivos {
+    all u:Usuario, p:u.possui | (u.statusUsuario = ativo and p.statusPerfil = ativo) implies p in u.podePublicar
+}
+
+check UsuarioPodePublicarPerfisAtivos
+
 
 run {} 
