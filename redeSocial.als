@@ -18,7 +18,7 @@ enum Status{
 }
 
 enum Publicou{
-    sim, nao
+    simPublicou, naoPublicou
 }
 
 sig Usuario{
