@@ -1,24 +1,12 @@
-// Descrição: Você deve projetar uma especificação simplificada de uma plataforma de mídia social usando 
-// o Alloy Analyzer. A plataforma de mídia social deve suportar perfis de usuário, conexões de amizade 
-// e publicação de conteúdo de texto. As seguintes restrições devem ser seguidas:
-
-// Um usuário pode ter mais de um perfil. Perfis e usuários podem estar ativos ou inativos.
-
-// Conexões de amizade entre os usuários devem ser estabelecidas. O sistema deve ter um histórico
-//  das conexões atuais e apagadas.
-
-// Um usuário pode publicar conteúdo de texto em seu perfil ou nos perfis de seus amigos.
-
-// A especificação Alloy deve representar esses recursos e capturar as relações entre usuários,
-// amizades e postagens. Além disso, devem existir restrições para garantir que o modelo seja bem
-// definido e satisfaça certas propriedades (por exemplo, os usuários não podem ser amigos de si mesmos, as postagens devem estar associadas a usuários ativos, etc.).
-
+//Os dois possíveis status de um perfil ou usuário
 enum Status{
     inativo, ativo
 }
 
+// Bônus
+// O perfil possui alguma publicação?
 enum Publicou{
-    TemPublicação, NãoTemPublicação
+    TemPublicação, NaoTemPublicação
 }
 
 sig Usuario{
@@ -35,14 +23,26 @@ sig Perfil{
 }
 
 fact "Restrições do Usuário" {
+    // Nenhum usuário é amigo ou ex-amigo de si próprio
     all u:Usuario | u not in u.amigos and u not in u.exAmigos
 }
 
+fact "Restrição de Publicação" {
+    // Um usuário pode publicar nos perfis de seus amigos, mas não pode publicar no de seus ex-amigos.
+    all u:Usuario | (u.podePublicar = u.podePublicar + (u.amigos.possui) - (u.exAmigos.possui))
+    // Se um perfil não é do usuário, nem dos amigos dele, então o usuário não pode publicar nesse perfil.
+    all u:Usuario, p:Perfil | (p not in u.possui and p not in u.amigos.possui) implies p not in u.podePublicar
+}
+
 fact "Restrições do Perfil" {
-    //Caso o usuário ao qual este perfil pertence esteja inativo, o mesmo deve ser inativo também
+    // Caso o usuário ao qual este perfil pertence esteja inativo, o mesmo deve ser inativo também
     all p:Perfil, u:Usuario | (u.statusUsuario = inativo and p in u.possui) implies p.statusPerfil = inativo
-    //Cada perfil possui apenas um único usuário que o possui(note que não existem perfis que não pertencem à nenhum usuário)
+    // Caso o perfil de um usuário esteja inativo, nem ele, nem seus amigos podem publicar nele(imagine os ex-amigos hahaha, mas isso dos ex-amigos foi verificado lá em cima) 
+    all p:Perfil, u:Usuario | (p in u.possui and p.statusPerfil = inativo) implies (p not in u.podePublicar and p not in u.amigos.podePublicar)
+    // Cada perfil possui apenas um único usuário que o possui(note que não existem perfis que não pertencem à nenhum usuário)
     all p: Perfil | one u: Usuario | p in u.possui
+    // Se o perfil está inativo, não possui publicações
+    all p:Perfil | p.statusPerfil = inativo implies p.publicacoes = NaoTemPublicação
 }
 
 fact "Restrição de Amizade" {
@@ -50,10 +50,6 @@ fact "Restrição de Amizade" {
     all u1, u2: Usuario | not (u1 in u2.amigos and u1 in u2.exAmigos) and not (u2 in u1.amigos and u2 in u1.exAmigos)
     // A relação de amizade e inimizade deve ser mútua
     all u1, u2: Usuario | (u1 in u2.amigos <=> u2 in u1.amigos) and (u1 in u2.exAmigos <=> u2 in u1.exAmigos)
-}
-
-fact "Restrição de Publicação" {
-    all u:Usuario | u.podePublicar = u.possui + u.amigos.possui
 }
 
 run {} for exactly 3 Usuario, 3 Perfil
