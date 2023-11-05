@@ -54,4 +54,51 @@ fact "Restrição de Amizade" {
     all u1, u2: Usuario | (u1 in u2.amigos <=> u2 in u1.amigos) and (u1 in u2.exAmigos <=> u2 in u1.exAmigos)
 }
 
-run {} for exactly 3 Usuario, 3 Perfil
+// Não existe um amigo e um exAmigo ao mesmo tempo
+assert amigos {
+    all u1,u2:Usuario | not ((u1 in u2.amigos) and (u1 in u2.exAmigos))
+}
+check amigos
+
+assert ativoPublicaInativo {
+    all u1,u2:Usuario | all p1:u1.podePublicar | ((u1 in u2.amigos) and (inativo in u2.statusUsuario)) implies (not p1 in u2.possui)
+}
+check ativoPublicaInativo
+
+assert UsuarioInativoAndPerfilInativo {
+    all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (inativo in p.statusPerfil)
+}
+check UsuarioInativoAndPerfilInativo
+
+assert atLeastOnePerfil {
+    all u:Usuario | #(u.possui) > 0
+}
+check atLeastOnePerfil
+
+assert belongsToOnlyOneUser {
+    all u1,u2:Usuario | (u1 != u2) implies (all p:u1.possui | (not p in u2.possui))
+}
+check belongsToOnlyOneUser
+
+assert mutuals {
+    all u1, u2: Usuario | (u1 in u2.amigos implies u2 in u1.amigos) and (u2 in u1.amigos implies u1 in u2.amigos)
+    all u1, u2: Usuario | (u1 in u2.exAmigos implies u2 in u1.exAmigos) and (u2 in u1.exAmigos implies u1 in u2.exAmigos)
+}
+check mutuals
+
+assert ownFriend {
+    all u:Usuario | not (u in u.amigos || u in u.exAmigos)
+}
+check ownFriend
+
+assert postPerfilInativo {
+    all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (NaoTemPublicação in p.publicacoes)
+}
+check postPerfilInativo
+
+assert UsuarioInativoNoFriends {
+    all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0 and #(u.exAmigos) = 0)
+}
+check UsuarioInativoNoFriends
+
+run {} 
