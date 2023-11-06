@@ -101,24 +101,12 @@ assert ownFriend {
 }
 check ownFriend
 
-<<<<<<< HEAD
-=======
-// se o Usuario ta inativo ele nao tem publicações
-assert postPerfilInativo {
-    all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (NaoTemPublicação in p.publicacoes)
-}
-check postPerfilInativo
-
 // Usuario inativo nao tem amigos
->>>>>>> ff3ba6e7c76b67c839791eaf3957d72b2d9c7f58
 assert UsuarioInativoNoFriends {
     all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0 and #(u.exAmigos) = 0)
 }
 check UsuarioInativoNoFriends
 
-<<<<<<< HEAD
-run {} for exactly 4 Usuario, 4 Perfil
-=======
 // Usuario ativo pode publicar em todos seus perfis ativos
 assert UsuarioPodePublicarPerfisAtivos {
     all u:Usuario, p:u.possui | (u.statusUsuario = ativo and p.statusPerfil = ativo) implies p in u.podePublicar
@@ -126,6 +114,4 @@ assert UsuarioPodePublicarPerfisAtivos {
 
 check UsuarioPodePublicarPerfisAtivos
 
-
 run {} 
->>>>>>> ff3ba6e7c76b67c839791eaf3957d72b2d9c7f58
