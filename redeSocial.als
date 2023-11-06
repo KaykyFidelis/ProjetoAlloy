@@ -43,8 +43,6 @@ fact "Restrições do Perfil" {
     all p:Perfil, u:Usuario | (p in u.possui and p.statusPerfil = inativo) implies (p not in u.podePublicar and p not in u.amigos.podePublicar)
     // Cada perfil possui apenas um único usuário que o possui(note que não existem perfis que não pertencem à nenhum usuário)
     all p: Perfil | one u: Usuario | p in u.possui
-    // Se o perfil está inativo, não possui publicações
-    all p:Perfil | p.statusPerfil = inativo implies p.publicacoes = NaoTemPublicação
 }
 
 fact "Restrição de Amizade" {
@@ -91,14 +89,9 @@ assert ownFriend {
 }
 check ownFriend
 
-assert postPerfilInativo {
-    all u:Usuario | all p:u.possui | (inativo in u.statusUsuario) implies (NaoTemPublicação in p.publicacoes)
-}
-check postPerfilInativo
-
 assert UsuarioInativoNoFriends {
     all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0 and #(u.exAmigos) = 0)
 }
 check UsuarioInativoNoFriends
 
-run {} 
+run {} for exactly 4 Usuario, 4 Perfil
