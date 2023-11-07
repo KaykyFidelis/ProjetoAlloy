@@ -3,7 +3,6 @@ enum Status{
     inativo, ativo
 }
 
-// Bônus
 // O perfil possui alguma publicação?
 enum Publicou{
     TemPublicação, NaoTemPublicação
@@ -31,7 +30,7 @@ fact "Restrições do Usuário" {
     // Nenhum usuário é amigo ou ex-amigo de si próprio
     all u:Usuario | u not in u.amigos and u not in u.exAmigos
     // Se um usuário é inativo, então não pode possuir relação com outros usuários
-    all u:Usuario | u.statusUsuario = inativo implies (#u.amigos = 0 and #u.exAmigos = 0) 
+    all u:Usuario | u.statusUsuario = inativo implies (#u.amigos = 0) 
 }
 
 fact "Restrição de Publicação" {
@@ -103,7 +102,7 @@ check ownFriend
 
 // Usuario inativo nao tem amigos
 assert UsuarioInativoNoFriends {
-    all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0 and #(u.exAmigos) = 0)
+    all u:Usuario | inativo in u.statusUsuario implies (#(u.amigos) = 0)
 }
 check UsuarioInativoNoFriends
 
